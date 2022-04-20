@@ -330,7 +330,9 @@ async def list_features(dataset_id: str, collection_id: str, page: int, per_page
                 rdfs:member ?f .
             FILTER (STR(?coll_id) = "{collection_id}")
             ?f a geo:Feature ;
-                dcterms:identifier ?id .
+                dcterms:identifier ?id ;
+                dcterms:identifier ?id_2 .
+            FILTER (STR(?id) > STR(?id_2))
                 
             OPTIONAL {{
                 ?f skos:prefLabel|dcterms:title|rdfs:label ?label .
