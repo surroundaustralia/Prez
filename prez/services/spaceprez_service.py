@@ -1,6 +1,6 @@
 from typing import Optional
 
-from rdflib.namespace import RDFS, DCAT, DCTERMS
+from rdflib.namespace import RDFS, DCAT, DCTERMS, XSD
 
 from config import *
 from services.sparql_utils import *
@@ -317,6 +317,7 @@ async def list_features(dataset_id: str, collection_id: str, page: int, per_page
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         SELECT DISTINCT *
         WHERE {{
             ?d dcterms:identifier ?d_id ;
@@ -330,10 +331,8 @@ async def list_features(dataset_id: str, collection_id: str, page: int, per_page
                 rdfs:member ?f .
             FILTER (STR(?coll_id) = "{collection_id}")
             ?f a geo:Feature ;
-                dcterms:identifier ?id ;
-                dcterms:identifier ?id_2 .
-            FILTER (STR(?id) > STR(?id_2))
-                
+                dcterms:identifier ?id .
+            FILTER(datatype(?id) = xsd:token)
             OPTIONAL {{
                 ?f skos:prefLabel|dcterms:title|rdfs:label ?label .
             }}
