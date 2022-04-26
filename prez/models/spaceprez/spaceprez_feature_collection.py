@@ -2,7 +2,7 @@ from typing import List, Dict, Optional
 import json
 
 from rdflib import Graph
-from rdflib.namespace import DCTERMS, SKOS, RDFS
+from rdflib.namespace import DCTERMS, SKOS, RDFS, XSD
 
 from config import *
 from models import PrezModel
@@ -33,12 +33,13 @@ class SpacePrezFeatureCollection(PrezModel):
 
         query_by_id = f"""
                 ?coll dcterms:identifier ?id .
-                FILTER (STR(?id) = "{id}")
+                FILTER (STR(?id) = "{id}" && DATATYPE(?id) = xsd:token)
         """
 
         query_by_uri = f"""
                 BIND (<{uri}> as ?coll) 
                 ?coll dcterms:identifier ?id .
+                FILTER(DATATYPE(?id) = xsd:token)
         """
 
         q = f"""
@@ -46,12 +47,14 @@ class SpacePrezFeatureCollection(PrezModel):
             PREFIX geo: <{GEO}>
             PREFIX rdfs: <{RDFS}>
             PREFIX skos: <{SKOS}>
+            PREFIX xsd: <{XSD}>
             SELECT *
             WHERE {{
                 {query_by_id if id is not None else query_by_uri}
                 ?d rdfs:member ?coll ;
                     dcterms:identifier ?d_id ;
-                    dcterms:title ?d_label .                
+                    dcterms:title ?d_label .   
+                FILTER(DATATYPE(?d_id) = xsd:token)             
                 
                 ?coll a geo:FeatureCollection ;
                     dcterms:title ?title ;

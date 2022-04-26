@@ -1,6 +1,6 @@
 from typing import Optional
 
-from rdflib.namespace import RDFS, DCAT, DCTERMS
+from rdflib.namespace import RDFS, DCAT, DCTERMS, XSD
 
 from config import *
 from services.sparql_utils import *
@@ -27,11 +27,13 @@ async def list_datasets(page: int, per_page: int):
         PREFIX dcterms: <{DCTERMS}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         SELECT DISTINCT ?d ?id ?label
         WHERE {{
             ?d a dcat:Dataset ;
                 dcterms:identifier ?id ;
                 skos:prefLabel|dcterms:title|rdfs:label ?label .
+                FILTER(DATATYPE(?id) = xsd:token)
         }} LIMIT {per_page} OFFSET {(page - 1) * per_page}
     """
     r = await sparql_query(q, "SpacePrez")
@@ -51,7 +53,7 @@ async def get_dataset_construct(
     query_by_id = f"""
         ?d dcterms:identifier ?id ;
             a dcat:Dataset .
-        FILTER (STR(?id) = "{dataset_id}")
+        FILTER (STR(?id) = "{dataset_id}" && DATATYPE(?id) = xsd:token)
     """
     # when querying by URI via /object?uri=...
     query_by_uri = f"""
@@ -63,6 +65,7 @@ async def get_dataset_construct(
         PREFIX dcat: <{DCAT}>
         PREFIX dcterms: <{DCTERMS}>
         PREFIX rdfs: <{RDFS}>
+        PREFIX xsd: <{XSD}>
         CONSTRUCT {{
             ?d ?p1 ?o1 .
 
@@ -112,12 +115,13 @@ async def count_collections(dataset_id: str):
         PREFIX dcterms: <{DCTERMS}>
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
+        PREFIX xsd: <{XSD}>
         SELECT (COUNT(?coll) as ?count) 
         WHERE {{
             ?d dcterms:identifier ?d_id ;
                 a dcat:Dataset ;
                 rdfs:member ?coll .
-            FILTER (STR(?d_id) = "{dataset_id}")
+            FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?d_id) = xsd:token)
             ?coll a geo:FeatureCollection .
         }}
     """
@@ -135,16 +139,18 @@ async def list_collections(dataset_id: str, page: int, per_page: int):
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         SELECT DISTINCT *
         WHERE {{
             ?d dcterms:identifier ?d_id ;
                 a dcat:Dataset ;
                 skos:prefLabel|dcterms:title|rdfs:label ?d_label ;
                 rdfs:member ?coll .
-            FILTER (STR(?d_id) = "{dataset_id}")
+            FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?id) = xsd:token)
             ?coll a geo:FeatureCollection ;
                 dcterms:identifier ?id ;
                 skos:prefLabel|dcterms:title|rdfs:label ?label .
+            FILTER(DATATYPE(?id) = xsd:token)
         }} LIMIT {per_page} OFFSET {(page - 1) * per_page}
     """
     r = await sparql_query(q, "SpacePrez")
@@ -164,13 +170,13 @@ async def get_collection_construct_1(
 
     # when querying by ID via regular URL path
     query_by_id = f"""
-        FILTER (STR(?d_id) = "{dataset_id}")
         ?coll a geo:FeatureCollection ;
             dcterms:identifier ?id .
+        FILTER (STR(?id) = "{collection_id}" && DATATYPE(?id) = xsd:token)
         ?d a dcat:Dataset ;
             rdfs:member ?fc ;
             dcterms:identifier ?d_id .
-        FILTER (STR(?id) = "{collection_id}")
+        FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?d_id) = xsd:token)
     """
     # when querying by URI via /object?uri=...
     query_by_uri = f"""
@@ -184,6 +190,7 @@ async def get_collection_construct_1(
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         CONSTRUCT {{
             ?coll ?p1 ?o1 .
             ?o1 ?p2 ?o2 .
@@ -221,6 +228,7 @@ async def get_collection_construct_1(
                 rdfs:member ?fc ;
                 dcterms:identifier ?d_id ;
                 dcterms:title ?d_label .
+            FILTER (DATATYPE(?d_id) = xsd:token)
             OPTIONAL {{
                 ?p1 rdfs:label ?p1Label .
                 FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en")
@@ -248,13 +256,13 @@ async def get_collection_construct_2(
 
     # when querying by ID via regular URL path
     query_by_id = f"""
-        FILTER (STR(?d_id) = "{dataset_id}")
         ?coll a geo:FeatureCollection ;
             dcterms:identifier ?id .
+        FILTER (STR(?id) = "{collection_id}" && DATATYPE(?id) = xsd:token)
         ?d a dcat:Dataset ;
             dcterms:identifier ?d_id ;
             rdfs:member ?fc .
-        FILTER (STR(?id) = "{collection_id}")
+        FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?d_id) = xsd:token)
     """
     # when querying by URI via /object?uri=...
     query_by_uri = f"""
@@ -268,6 +276,7 @@ async def get_collection_construct_2(
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         CONSTRUCT {{
             ?coll rdfs:member ?mem .
         }}
@@ -289,17 +298,18 @@ async def count_features(dataset_id: str, collection_id: str):
         PREFIX dcterms: <{DCTERMS}>
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
+        PREFIX xsd: <{XSD}>
         
         SELECT (COUNT(?f) as ?count) 
         WHERE {{
             ?d dcterms:identifier ?d_id ;
                 a dcat:Dataset ;
                 rdfs:member ?coll .
-            FILTER (STR(?d_id) = "{dataset_id}")
+            FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?d_id) = xsd:token)
             ?coll dcterms:identifier ?coll_id ;
                 a geo:FeatureCollection ;
                 rdfs:member ?f .
-            FILTER (STR(?coll_id) = "{collection_id}")
+            FILTER (STR(?coll_id) = "{collection_id}" && DATATYPE(?coll_id) = xsd:token)
             ?f a geo:Feature .
         }}
     """
@@ -317,20 +327,22 @@ async def list_features(dataset_id: str, collection_id: str, page: int, per_page
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         SELECT DISTINCT *
         WHERE {{
             ?d dcterms:identifier ?d_id ;
                 a dcat:Dataset ;
                 skos:prefLabel|dcterms:title|rdfs:label ?d_label ;
                 rdfs:member ?coll .
-            FILTER (STR(?d_id) = "{dataset_id}")
+            FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?d_id) = xsd:token)
             ?coll a geo:FeatureCollection ;
                 dcterms:identifier ?coll_id ;
                 skos:prefLabel|dcterms:title|rdfs:label ?coll_label ;
                 rdfs:member ?f .
-            FILTER (STR(?coll_id) = "{collection_id}")
+            FILTER (STR(?coll_id) = "{collection_id}" && DATATYPE(?coll_id) = xsd:token)
             ?f a geo:Feature ;
                 dcterms:identifier ?id .
+            FILTER (DATATYPE(?id) = xsd:token)
                 
             OPTIONAL {{
                 ?f skos:prefLabel|dcterms:title|rdfs:label ?label .
@@ -355,15 +367,15 @@ async def get_feature_construct(
 
     # when querying by ID via regular URL path
     query_by_id = f"""
-        FILTER (STR(?d_id) = "{dataset_id}")
+        FILTER (STR(?d_id) = "{dataset_id}" && DATATYPE(?d_id) = xsd:token)
         ?d rdfs:member ?coll .
         ?coll a geo:FeatureCollection ;
             dcterms:identifier ?coll_id ;
             rdfs:member ?f .
-        FILTER (STR(?coll_id) = "{collection_id}")
+        FILTER (STR(?coll_id) = "{collection_id}" && DATATYPE(?coll_id) = xsd:token)
         ?f a geo:Feature ;
             dcterms:identifier ?id .
-        FILTER (STR(?id) = "{feature_id}")
+        FILTER (STR(?id) = "{feature_id}" && DATATYPE(?id) = xsd:token)
     """
     # when querying by URI via /object?uri=...
     query_by_uri = f"""
@@ -377,6 +389,7 @@ async def get_feature_construct(
         PREFIX geo: <{GEO}>
         PREFIX rdfs: <{RDFS}>
         PREFIX skos: <{SKOS}>
+        PREFIX xsd: <{XSD}>
         
         CONSTRUCT {{
             ?f ?p1 ?o1 ;
@@ -423,6 +436,7 @@ async def get_feature_construct(
             ?coll a geo:FeatureCollection ;
                 dcterms:identifier ?coll_id ;
                 ?label_pred ?coll_label .
+            FILTER (DATATYPE(?coll_id) = xsd:token)
             ?d a dcat:Dataset ;
                 dcterms:identifier ?d_id ;
                 ?label_pred ?d_label .
