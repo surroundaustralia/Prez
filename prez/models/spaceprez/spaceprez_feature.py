@@ -12,11 +12,12 @@ class SpacePrezFeature(PrezModel):
     # class attributes for property grouping & order
     main_props = [
         DCTERMS.title,
-        DCTERMS.description,
+        # DCTERMS.description,
     ]
     geom_props = [GEO.hasGeometry]
     hidden_props = [
         DCTERMS.identifier,
+        DCTERMS.description,
     ]
 
     def __init__(
@@ -53,6 +54,7 @@ class SpacePrezFeature(PrezModel):
                 {query_by_id if id is not None else query_by_uri}
                 ?f a geo:Feature ;
                     dcterms:title ?title .
+                FILTER(lang(?title) = "" || lang(?title) = "en")
                 # OPTIONAL {{
                 #     ?f dcterms:title ?label .
                 # }}
@@ -64,11 +66,6 @@ class SpacePrezFeature(PrezModel):
                     rdfs:member ?f ;
                     dcterms:identifier ?coll_id ;
                     dcterms:title ?coll_label .
-                FILTER(DATATYPE(?coll_id) = xsd:token)
-                ?d a dcat:Dataset ;
-                    dcterms:identifier ?d_id ;
-                    dcterms:title ?d_label .
-                FILTER(DATATYPE(?d_id) = xsd:token)
             }}
         """
         )
