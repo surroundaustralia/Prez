@@ -277,14 +277,14 @@ async def count_features(
         
         SELECT (COUNT(?f) as ?count) 
         WHERE {{
-            ?d dcterms:identifier ?d_id ;
+            ?d dcterms:identifier {f'"{dataset_id}"^^xsd:token' if dataset_id is not None else "?d_id"} ;
                 a dcat:Dataset ;
                 rdfs:member ?coll .
-            FILTER ({f'STR(?d_id) = "{dataset_id}" && ' if dataset_id is not None else ""}DATATYPE(?d_id) = xsd:token)
-            ?coll dcterms:identifier ?coll_id ;
+            {f'BIND("{dataset_id}" AS ?d_id)' if dataset_id is not None else "FILTER(DATATYPE(?d_id) = xsd:token)"}
+            ?coll dcterms:identifier {f'"{collection_id}"^^xsd:token' if collection_id is not None else "?coll_id"} ;
                 a geo:FeatureCollection ;
                 rdfs:member ?f .
-            FILTER ({f'STR(?coll_id) = "{collection_id}" && ' if collection_id is not None else ""}DATATYPE(?coll_id) = xsd:token)
+            {f'BIND("{collection_id}" AS ?coll_id)' if collection_id is not None else "FILTER(DATATYPE(?coll_id) = xsd:token)"}
             ?f a geo:Feature .
             {cql_query or ""}
         }}
@@ -313,18 +313,18 @@ async def list_features(
         PREFIX xsd: <{XSD}>
         SELECT DISTINCT *
         WHERE {{
-            ?d dcterms:identifier ?d_id ;
+            ?d dcterms:identifier {f'"{dataset_id}"^^xsd:token' if dataset_id is not None else "?d_id"} ;
                 a dcat:Dataset ;
                 dcterms:title ?d_label ;
                 rdfs:member ?coll .
             FILTER(lang(?d_label) = "" || lang(?d_label) = "en")
-            FILTER ({f'STR(?d_id) = "{dataset_id}" && ' if dataset_id is not None else ""}DATATYPE(?d_id) = xsd:token)
+            {f'BIND("{dataset_id}" AS ?d_id)' if dataset_id is not None else "FILTER(DATATYPE(?d_id) = xsd:token)"}
             ?coll a geo:FeatureCollection ;
-                dcterms:identifier ?coll_id ;
+                dcterms:identifier {f'"{collection_id}"^^xsd:token' if collection_id is not None else "?coll_id"} ;
                 dcterms:title ?coll_label ;
                 rdfs:member ?f .
             FILTER(lang(?coll_label) = "" || lang(?coll_label) = "en")
-            FILTER ({f'STR(?coll_id) = "{collection_id}" && ' if collection_id is not None else ""}DATATYPE(?coll_id) = xsd:token)
+            {f'BIND("{collection_id}" AS ?coll_id)' if collection_id is not None else "FILTER(DATATYPE(?coll_id) = xsd:token)"}
             ?f a geo:Feature ;
                 dcterms:identifier ?id .
             FILTER(DATATYPE(?id) = xsd:token)

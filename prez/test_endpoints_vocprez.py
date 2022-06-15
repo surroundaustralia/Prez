@@ -49,8 +49,8 @@ def a_vocab_id():
 
 
 def test_vocab_default_default(a_vocab_id):
-    r2 = client.get(f"/vocab/{a_vocab_id}?_mediatype=text/html")  # TODO: work out why HTML has to be specified here?
-    assert '<li class="breadcrumb"><a href="http://testserver/vocab/CI_DateTypeCode">' in r2.text
+    r2 = client.get(f"/vocab/{a_vocab_id}")
+    assert f'<li class="breadcrumb"><a href="http://testserver/vocab/{a_vocab_id}">' in r2.text
 
 
 def test_vocab_default_turtle(a_vocab_id):

@@ -111,6 +111,8 @@ def test_collection_default_default():
     )
 
 
+# TODO: fails if boundingBox is WKT, not geoJSON
+# WKT -> geoJSON conversion is done for a HTML table
 def test_collection_default_geojson():
     # get link for first dataset
     r = client.get("/datasets?_profile=mem&_mediatype=application/json")

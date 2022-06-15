@@ -167,25 +167,25 @@ class CQLSearch(object):
 
         # cater for specifying datasets & not collections
         self.query = f"""
-            ?d a dcat:Dataset ;
-                dcterms:identifier ?d_id ;
-                rdfs:member ?coll .
+            # ?d a dcat:Dataset ;
+            #     dcterms:identifier ?d_id ;
+            #     rdfs:member ?coll .
            
             BIND(STR(?d_id) AS ?d_id_str)
             VALUES ?d_id_str {{{" ".join([f'"{d.strip()}"' for d in self.datasets.split(',')])}}}
-            BIND(DATATYPE(?d_id) AS ?d_id_dt)
-            FILTER(?d_id_dt = xsd:token)
+            # BIND(DATATYPE(?d_id) AS ?d_id_dt)
+            # FILTER(?d_id_dt = xsd:token)
 
-            ?coll a geo:FeatureCollection ;
-                dcterms:identifier ?coll_id ;
-                rdfs:member ?f .
+            # ?coll a geo:FeatureCollection ;
+            #     dcterms:identifier ?coll_id ;
+            #     rdfs:member ?f .
             
             BIND(STR(?coll_id) AS ?coll_id_str)
             VALUES ?coll_id_str {{{" ".join([f'"{coll.strip()}"' for coll in self.collections.split(',')])}}}
-            BIND(DATATYPE(?coll_id) AS ?coll_id_dt)
-            FILTER(?coll_id_dt = xsd:token)
+            # BIND(DATATYPE(?coll_id) AS ?coll_id_dt)
+            # FILTER(?coll_id_dt = xsd:token)
 
-            ?f a geo:Feature .
+            # ?f a geo:Feature .
         """
 
         self.filter = self._parse_eq_ops(self.filter)
