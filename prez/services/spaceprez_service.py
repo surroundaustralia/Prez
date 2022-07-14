@@ -108,9 +108,10 @@ async def count_collections(dataset_id: Optional[str] = None):
         PREFIX xsd: <{XSD}>
         SELECT (COUNT(?coll) as ?count)
         WHERE {{
+            ?coll a geo:FeatureCollection ;
+               rdfs:member ?d .
             ?d dcterms:identifier {f'"{dataset_id}"^^xsd:token' if dataset_id is not None else "?d_id"} ;
-                a dcat:Dataset ;
-                rdfs:member ?coll .
+                a dcat:Dataset .
             {f'BIND("{dataset_id}" AS ?d_id)' if dataset_id is not None else "FILTER(DATATYPE(?d_id) = xsd:token)"}
             ?coll a geo:FeatureCollection .
         }}
@@ -139,11 +140,11 @@ async def list_collections(
         WHERE {{
             ?d dcterms:identifier {f'"{dataset_id}"^^xsd:token' if dataset_id is not None else "?d_id"} ;
                 a dcat:Dataset ;
-                dcterms:title ?d_label ;
-                rdfs:member ?coll .
+                dcterms:title ?d_label .
             FILTER(lang(?d_label) = "" || lang(?d_label) = "en" || lang(?d_label) = "en-AU")
             {f'BIND("{dataset_id}" AS ?d_id)' if dataset_id is not None else "FILTER(DATATYPE(?d_id) = xsd:token)"}
             ?coll a geo:FeatureCollection ;
+                rdfs:member ?d ;
                 dcterms:identifier ?id ;
                 dcterms:title ?label .
             OPTIONAL {{
